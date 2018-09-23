@@ -7,6 +7,5 @@ COPY traefik-etcd-sidecar $WORKSPACE
 
 WORKDIR $WORKSPACE
 
-CMD sleep 10000
-# ENTRYPOINT ["./traefik-etcd-sidecar"]
-# CMD ["start"]
+ENTRYPOINT ["./traefik-etcd-sidecar"]
+CMD ["start"]
