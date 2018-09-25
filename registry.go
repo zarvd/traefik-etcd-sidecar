@@ -4,17 +4,21 @@ import (
 	"context"
 	"log"
 
+	"fmt"
 	"go.etcd.io/etcd/clientv3"
+	"strconv"
 )
 
 type Registry struct {
 	etcdClient      *clientv3.Client
+	traefikConf     TreafikConf
 	generalLeaseTTL int64
 }
 
-func NewRegistry(etcdClient *clientv3.Client) *Registry {
+func NewRegistry(etcdClient *clientv3.Client, traefikConf TreafikConf) *Registry {
 	return &Registry{
 		etcdClient:      etcdClient,
+		traefikConf:     traefikConf,
 		generalLeaseTTL: 10,
 	}
 }
@@ -28,7 +32,7 @@ func (r *Registry) isRegister(ctx context.Context, key string) bool {
 	return len(resp.Kvs) != 0
 }
 
-func (r *Registry) register(ctx context.Context, traefikKVs map[string]string) {
+func (r *Registry) register(ctx context.Context, backend TraefikBackend) {
 	resp, err := r.etcdClient.Grant(ctx, r.generalLeaseTTL)
 
 	if err != nil {
@@ -39,14 +43,14 @@ func (r *Registry) register(ctx context.Context, traefikKVs map[string]string) {
 
 	r.etcdClient.KeepAlive(context.Background(), leaseID)
 
-	for k, v := range traefikKVs {
-		if r.isRegister(ctx, k) {
-			log.Printf("WARNING key %s is registered, it will be override\n", k)
-		}
+	urlRecord := fmt.Sprintf("%s/backends/%s/servers/%s/url", r.traefikConf.EtcdPrefix, backend.Name, backend.Node)
+	weightRecord := fmt.Sprintf("%s/backends/%s/servers/%s/weight", r.traefikConf.EtcdPrefix, backend.Name, backend.Node)
 
-		_, err := r.etcdClient.Put(ctx, k, v, clientv3.WithLease(leaseID))
-		if err != nil {
-			log.Fatalln("failed to register", err)
-		}
+	if _, err := r.etcdClient.Put(ctx, urlRecord, backend.URL, clientv3.WithLease(leaseID)); err != nil {
+		log.Fatalln("failed to register", err)
+	}
+
+	if _, err := r.etcdClient.Put(ctx, weightRecord, strconv.Itoa(int(backend.Weight)), clientv3.WithLease(leaseID)); err != nil {
+		log.Fatalln("failed to register", err)
 	}
 }

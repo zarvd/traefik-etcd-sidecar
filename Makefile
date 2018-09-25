@@ -8,3 +8,7 @@ build-alpine-image: build-for-linux
 		--no-cache \
 		--force-rm \
 		-t traefik-etcd-sidecar:latest
+
+.PHONY: clean
+clean:
+	rm traefik-etcd-sidecar
