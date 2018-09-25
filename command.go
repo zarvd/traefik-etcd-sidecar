@@ -32,7 +32,7 @@ func startCmd() *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().StringArrayVar(&etcdConfig.Endpoints, "etcd-endpoints", []string{}, "etcd endpoints")
+	cmd.PersistentFlags().StringSliceVar(&etcdConfig.Endpoints, "etcd-endpoints", []string{}, "etcd endpoints")
 	cmd.PersistentFlags().StringVar(&etcdConfig.Username, "etcd-username", "", "etcd username")
 	cmd.PersistentFlags().StringVar(&etcdConfig.Password, "etcd-password", "", "etcd password")
 
