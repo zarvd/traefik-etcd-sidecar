@@ -7,7 +7,7 @@ build-alpine-image: build-for-linux
 	docker build . \
 		--no-cache \
 		--force-rm \
-		-t traefik-etcd-sidecar:latest
+		-t 0x636363/traefik-etcd-sidecar:latest
 
 .PHONY: clean
 clean:
