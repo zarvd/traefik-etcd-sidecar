@@ -29,6 +29,8 @@ func startCmd() *cobra.Command {
 
 			registry := NewRegistry(etcdClient, traefikConf)
 			registry.register(context.Background(), traefikBackend)
+
+			select {} // sleep forever
 		},
 	}
 
