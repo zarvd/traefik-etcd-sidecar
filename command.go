@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"syscall"
 	"os/signal"
 
 	"github.com/spf13/cobra"
@@ -58,7 +59,7 @@ func startCmd() *cobra.Command {
 			ctx, cancel := context.WithCancel(context.Background())
 
 			c := make(chan os.Signal)
-			signal.Notify(c, os.Interrupt, os.Kill)
+			signal.Notify(c, syscall.SIGTERM, syscall.SIGKILL)
 
 			go traefikClient.RegisterBackend(ctx, traefikOptions.Backend,
 				traefik.Ready(ready),
