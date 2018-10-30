@@ -1,6 +1,12 @@
 Sidecar for registering treafik backend service by etcd
 ----
 
+## Goal
+
+- Register Traefik Backend dynamically through Etcd
+- Register and unregister by Readiness check
+- Non-intrusive code by docker Sidecar pattern
+
 ## Example
 
 docker-compose:
@@ -27,9 +33,12 @@ services:
       - "--traefik-backend-url=http://api:80"
       - "--traefik-backend-weight=1"
       - "--traefik-etcd-prefix=/traefik"
+      - "--service-http-readiness-host=http://api"
+      - "--service-http-readiness-port=80"
+      - "--service-http-readiness-path=/ping"
+      - "--service-http-readiness-interval=2"
     depends_on:
       - api
-
 ```
 
 ## License
