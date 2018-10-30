@@ -120,9 +120,11 @@ func (c *Client) RegisterBackend(ctx context.Context, backend Backend, opts ...R
 	} else {
 		var leaseID clientv3.LeaseID
 
+		ready := readiness.Ready(opt.readiness)
+
 		for {
 			select {
-			case isReady := <-readiness.Ready(opt.readiness):
+			case isReady := <-ready:
 				if isReady {
 					log.Println("register backend by readiness", backend)
 					// register and keep alive
