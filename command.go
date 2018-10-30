@@ -86,7 +86,7 @@ func startCmd() *cobra.Command {
 
 	cmd.PersistentFlags().StringVar(&httpReadinessOptions.Host, "service-http-readiness-host", "localhost", "backend service HTTP readiness host")
 	cmd.PersistentFlags().UintVar(&httpReadinessOptions.Port, "service-http-readiness-port", 80, "backend service HTTP readiness port")
-	cmd.PersistentFlags().StringVar(&httpReadinessOptions.Path, "service-http-readiness-port", "/", "backend service HTTP readiness path")
+	cmd.PersistentFlags().StringVar(&httpReadinessOptions.Path, "service-http-readiness-path", "/", "backend service HTTP readiness path")
 	cmd.PersistentFlags().UintVar(&httpReadinessOptions.Interval, "service-http-readiness-interval", 5, "backend service HTTP readiness interval [Seconds]")
 
 	return &cmd
