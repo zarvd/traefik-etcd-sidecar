@@ -105,12 +105,14 @@ func (c *Client) RegisterBackend(ctx context.Context, backend Backend, opts ...R
 	// FIXME re-register if keep alive fail
 	if opt.readiness == nil {
 		// without readiness check
+		log.Println("register backend without readiness check", backend)
 		leaseID := c.registerBackendWithLease(ctx, backend, opt.keepAliveTTL)
 		c.etcdClient.KeepAlive(context.Background(), leaseID)
 
 		for {
 			select {
 			case <-ctx.Done():
+				log.Println("unregister backend by context cancellation", backend)
 				c.etcdClient.Revoke(context.Background(), leaseID)
 				return
 			}
@@ -122,14 +124,17 @@ func (c *Client) RegisterBackend(ctx context.Context, backend Backend, opts ...R
 			select {
 			case isReady := <-readiness.Ready(opt.readiness):
 				if isReady {
+					log.Println("register backend by readiness", backend)
 					// register and keep alive
 					leaseID = c.registerBackendWithLease(ctx, backend, opt.keepAliveTTL)
 					c.etcdClient.KeepAlive(ctx, leaseID)
 				} else {
+					log.Println("unregister backend by readiness", backend)
 					// revoke
 					c.etcdClient.Revoke(context.Background(), leaseID)
 				}
 			case <-ctx.Done():
+				log.Println("unregister backend by context cancellation", backend)
 				c.etcdClient.Revoke(context.Background(), leaseID)
 				return
 			}

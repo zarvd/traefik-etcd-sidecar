@@ -85,6 +85,7 @@ func (h *HTTPReadiness) IsReady() bool {
 		log.Printf("failed to get readiness(Ignore), %s\n", err.Error())
 		return false
 	} else if resp.StatusCode >= 400 {
+		log.Println("service response without health status", resp)
 		return false
 	}
 
