@@ -7,7 +7,7 @@ services:
     restart: always
 
   api-traefik-sidecar:
-    image: 0x636363/traefik-etcd-sidecar
+    image: 0x636363/traefik-etcd-sidecar:v0.0.2
     container_name: api_traefik_sidecar
     command:
       - "start"
@@ -19,5 +19,9 @@ services:
       - "--traefik-backend-url=http://api:80"
       - "--traefik-backend-weight=1"
       - "--traefik-etcd-prefix=/traefik"
+      - "--service-http-readiness-host=http://api"
+      - "--service-http-readiness-port=80"
+      - "--service-http-readiness-path=/ping"
+      - "--service-http-readiness-interval=2"
     depends_on:
       - api

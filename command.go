@@ -6,6 +6,8 @@ import (
 	"os"
 	"syscall"
 	"os/signal"
+	"time"
+	"runtime"
 
 	"github.com/spf13/cobra"
 	"go.etcd.io/etcd/clientv3"
@@ -65,6 +67,12 @@ func startCmd() *cobra.Command {
 				traefik.Ready(ready),
 				traefik.KeepAlive(5),
 			)
+
+			go func() {
+				for range time.Tick(time.Second){
+					log.Printf("current goroutine number: %d\n", runtime.NumGoroutine())
+				}
+			}()
 
 			select {
 			case <-c:

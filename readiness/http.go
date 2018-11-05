@@ -81,10 +81,17 @@ func (h *HTTPReadiness) Interval() uint {
 func (h *HTTPReadiness) IsReady() bool {
 	url := fmt.Sprintf("%s:%d%s", h.Host(), h.Port(), h.Path())
 
-	if resp, err := h.httpClient.Get(url); err != nil {
+	resp, err := h.httpClient.Get(url)
+
+
+	if err != nil {
 		log.Printf("failed to get readiness(Ignore), %s\n", err.Error())
 		return false
-	} else if resp.StatusCode >= 400 {
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
 		log.Println("service response without health status", resp)
 		return false
 	}

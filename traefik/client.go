@@ -93,6 +93,49 @@ func (c *Client) registerBackendWithLease(ctx context.Context, backend Backend, 
 	return leaseID
 }
 
+func (c *Client) registerBackendWithReadiness(ctx context.Context, backend Backend, opt registerBackendOptions) {
+	var leaseID clientv3.LeaseID
+
+	ready := readiness.Ready(opt.readiness)
+
+	for {
+		log.Printf("selecting")
+		select {
+		case isReady := <-ready:
+			if isReady {
+				log.Println("register backend by readiness", backend)
+				// register and keep alive
+				leaseID = c.registerBackendWithLease(ctx, backend, opt.keepAliveTTL)
+				c.etcdClient.KeepAlive(ctx, leaseID)
+			} else {
+				log.Println("unregister backend by readiness", backend)
+				// revoke
+				c.etcdClient.Revoke(context.Background(), leaseID)
+			}
+		case <-ctx.Done():
+			log.Println("unregister backend by context cancellation", backend)
+			c.etcdClient.Revoke(context.Background(), leaseID)
+			return
+		}
+	}
+}
+
+func (c *Client) registerBackendWithoutReadiness(ctx context.Context, backend Backend, opt registerBackendOptions) {
+	// without readiness check
+	log.Println("register backend without readiness check", backend)
+	leaseID := c.registerBackendWithLease(ctx, backend, opt.keepAliveTTL)
+	c.etcdClient.KeepAlive(context.Background(), leaseID)
+
+	for {
+		select {
+		case <-ctx.Done():
+			log.Println("unregister backend by context cancellation", backend)
+			c.etcdClient.Revoke(context.Background(), leaseID)
+			return
+		}
+	}
+}
+
 // register backend and keep alive
 // stop keeping alive by cancel context
 func (c *Client) RegisterBackend(ctx context.Context, backend Backend, opts ...RegisterBackendOption) {
@@ -104,43 +147,9 @@ func (c *Client) RegisterBackend(ctx context.Context, backend Backend, opts ...R
 
 	// FIXME re-register if keep alive fail
 	if opt.readiness == nil {
-		// without readiness check
-		log.Println("register backend without readiness check", backend)
-		leaseID := c.registerBackendWithLease(ctx, backend, opt.keepAliveTTL)
-		c.etcdClient.KeepAlive(context.Background(), leaseID)
-
-		for {
-			select {
-			case <-ctx.Done():
-				log.Println("unregister backend by context cancellation", backend)
-				c.etcdClient.Revoke(context.Background(), leaseID)
-				return
-			}
-		}
+		c.registerBackendWithoutReadiness(ctx, backend, opt)
 	} else {
-		var leaseID clientv3.LeaseID
-
-		ready := readiness.Ready(opt.readiness)
-
-		for {
-			select {
-			case isReady := <-ready:
-				if isReady {
-					log.Println("register backend by readiness", backend)
-					// register and keep alive
-					leaseID = c.registerBackendWithLease(ctx, backend, opt.keepAliveTTL)
-					c.etcdClient.KeepAlive(ctx, leaseID)
-				} else {
-					log.Println("unregister backend by readiness", backend)
-					// revoke
-					c.etcdClient.Revoke(context.Background(), leaseID)
-				}
-			case <-ctx.Done():
-				log.Println("unregister backend by context cancellation", backend)
-				c.etcdClient.Revoke(context.Background(), leaseID)
-				return
-			}
-		}
+		c.registerBackendWithReadiness(ctx, backend, opt)
 	}
 }
 
