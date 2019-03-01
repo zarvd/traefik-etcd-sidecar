@@ -4,16 +4,16 @@ import (
 	"context"
 	"log"
 	"os"
-	"syscall"
 	"os/signal"
-	"time"
 	"runtime"
+	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 	"go.etcd.io/etcd/clientv3"
 
-	"github.com/0x636363/traefik-etcd-sidecar/readiness"
-	"github.com/0x636363/traefik-etcd-sidecar/traefik"
+	"github.com/ccc13/traefik-etcd-sidecar/readiness"
+	"github.com/ccc13/traefik-etcd-sidecar/traefik"
 )
 
 var rootCmd = &cobra.Command{
@@ -69,7 +69,7 @@ func startCmd() *cobra.Command {
 			)
 
 			go func() {
-				for range time.Tick(time.Second){
+				for range time.Tick(time.Second) {
 					log.Printf("current goroutine number: %d\n", runtime.NumGoroutine())
 				}
 			}()

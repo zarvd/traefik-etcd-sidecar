@@ -21,7 +21,7 @@ services:
     restart: always
 
   api-traefik-sidecar:
-    image: 0x636363/traefik-etcd-sidecar:v0.0.2
+    image: ccc13/traefik-etcd-sidecar:v0.0.3
     container_name: api_traefik_sidecar
     command:
       - "start"
@@ -39,6 +39,22 @@ services:
       - "--service-http-readiness-interval=2"
     depends_on:
       - api
+```
+
+## Development
+
+### Build
+
+require Golang installed(**TODO** build by Docker)
+
+```shell
+make build-for-linux
+```
+
+### Package Docker Image
+
+```shell
+make docker-build-tag="latest" build-alpine-image
 ```
 
 ## License

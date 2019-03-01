@@ -8,7 +8,7 @@ import (
 
 	"go.etcd.io/etcd/clientv3"
 
-	"github.com/0x636363/traefik-etcd-sidecar/readiness"
+	"github.com/ccc13/traefik-etcd-sidecar/readiness"
 )
 
 type Client struct {
